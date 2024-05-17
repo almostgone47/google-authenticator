@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="style.css" rel="stylesheet" />
+    <title>OTP</title>
+  </head>
+  <body>
+    <h1>Scan the QR Code Below</h1>
+    <div id="qr-code">
+      <canvas id="canvas"></canvas>
+    </div>
+    <h1>Enter the Google Auth OTP</h1>
+    <div>
+      <input id="google-otp" value="" />
+      <button onclick="verifyOTP()">Authenticate</button>
+    </div>
+    <script src="/scripts/qrcode.min.js"></script>
+    <script>
+      window.onload = function () {
+        fetch('/get-qrcode')
+          .then((response) => response.text())
+          .then((data) => {
+            const canvas = document.getElementById('canvas');
+            QRCode.toCanvas(canvas, data, function (error) {
+              if (error) console.error(error);
+              console.log('success!');
+            });
+          })
+          .catch((err) => console.error('Error fetching QR code:', err));
+      };
+
+      function verifyOTP() {
+        const otp = document.getElementById('google-otp').value;
+        fetch('/verify-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({token: otp}),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log('Verification result:', data); // Log the server response
+            alert(
+              data.valid
+                ? 'Success! OTP is valid!'
+                : 'Failure! Invalid OTP!!!!',
+            );
+          })
+          .catch((err) => console.error('Error verifying OTP:', err));
+      }
+    </script>
+  </body>
+</html>
